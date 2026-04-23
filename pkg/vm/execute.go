@@ -5,3 +5,8 @@ var (
 	stack []int8 = make([]int8, 4*1024);
 	memory []int8 = make([]int8, 64*1024);
 )
+
+
+func Execute(inst Inst, operators ...int) {
+
+}
