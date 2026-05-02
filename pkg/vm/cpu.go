@@ -1,4 +1,4 @@
-package vm
+package vm;
 
 import (
 	"errors"
@@ -21,18 +21,19 @@ const (
 	REG_MB;
 	REG_IM;
 	REG_IP;
+	WORD uint8 = 16;
 )
 
 
 type Cpu16 struct {
 	registers []uint16;
 	regsNames []string;
-	memory []uint16;
+	memory *C16MemoryMap;
 	interruptVectorAddress uint16;
 } 
 
 type C16MemoryMap struct {
-	base *uint16;
+	data *uint16;
 	limit uint16;
 }
 
@@ -83,4 +84,11 @@ func C16GetRegisterIndex(cpu Cpu16, str string) (uint8, error) {
 		}
 	}
 	return 0, errors.New("register not found")
+}
+
+func C16MemMapLoad(mem *C16MemoryMap, addr uint16, data *uint16, size uint16) error {
+	if size > mem.limit {
+		return errors.New("data is bigger than memory");
+	}
+
 }
