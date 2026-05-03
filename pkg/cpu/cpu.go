@@ -9,7 +9,7 @@ import (
 type RegNum int;
 
 const (
-	REG_R1 RegNum = 0;
+	REG_R1 RegNum = iota;
 	REG_R2;
 	REG_R3;
 	REG_R4;
@@ -19,36 +19,38 @@ const (
 	REG_R8;
 	REG_SP;
 	REG_BP;
-	REG_MB;
 	REG_IM;
 	REG_IP;
-	WORD uint8 = 16;
+	WORD uint8 = 32;
 )
 
 
-type Cpu16 struct {
-	registers []uint16;
-	
+
+type Cpu32 struct {
+	registers [] TObject;
+
 	regsNames []string;
-	
-	memory *C16MemoryMap;
-	
-	interruptVectorAddress uint16;
+
+	memory *C32MemoryMap;
+
+	interruptVectorAddress uint32;
 
 	ctx context.Context;
 } 
 
-type C16MemoryMap struct {
-	data *uint16;
-	limit uint16;
+type C32MemoryMap struct {
+	data *uint32;
+	limit uint32;
 }
 
 // r1-r8, sp, bp, mb, im, ip
-func C16CreateCpu(C16MemoryMap *uint16, size int, ) (*Cpu16, error){
-	var cpu *Cpu16 = &Cpu16{ ctx: context.Background()};
+func C32CreateCpu(C32MemoryMap *uint32, size int, ) (*Cpu32, error){
+	var cpu *Cpu32 = &Cpu32{ ctx: context.Background()};
 
-	
-	cpu.registers = make([]uint16, 13)
+
+	cpu.registers = make([]TObject, 13);
+	cpu.regsNames = make([]string, 13);
+
 	cpu.regsNames[REG_R1] = "r1";
 	cpu.regsNames[REG_R2] = "r2";
 	cpu.regsNames[REG_R3] = "r3";
@@ -59,14 +61,12 @@ func C16CreateCpu(C16MemoryMap *uint16, size int, ) (*Cpu16, error){
 	cpu.regsNames[REG_R8] = "r8";
 	cpu.regsNames[REG_SP] = "sp";
 	cpu.regsNames[REG_BP] = "bp";
-	// memory bank
-	cpu.regsNames[REG_MB] = "mb";
 	// interrupt mask
 	cpu.regsNames[REG_IM] = "im"
 	// instruction pointer
 	cpu.regsNames[REG_IP] = "ip";
 
-	err := C16SetRegister(cpu ,"sp", 0xffff - 1);
+	err := C32SetRegister(cpu ,"sp", &Integer32Object{ value: 0xffff - 1 });
 
 	if(err != nil){
 		return cpu, err;
@@ -76,16 +76,16 @@ func C16CreateCpu(C16MemoryMap *uint16, size int, ) (*Cpu16, error){
 	return cpu, nil;
 }
 
-func C16SetRegister(cpu *Cpu16, reg string, value uint16) error {
-	idx, err := C16GetRegisterIndex(cpu, reg);
+func C32SetRegister(cpu *Cpu32, reg string, object TObject) error {
+	idx, err := C32GetRegisterIndex(cpu, reg);
 	if(err != nil){
 		return err; 
 	}
-	cpu.registers[idx] = value;
+	cpu.registers[idx] = object;
 	return nil;
 }
 
-func C16GetRegisterIndex(cpu *Cpu16, str string) (uint8, error) {
+func C32GetRegisterIndex(cpu *Cpu32, str string) (uint8, error) {
 	for i := range len(cpu.registers){
 		if(strings.Compare(cpu.regsNames[i], str) > 0){
 			return uint8(i), nil;
@@ -94,9 +94,9 @@ func C16GetRegisterIndex(cpu *Cpu16, str string) (uint8, error) {
 	return 0, errors.New("register not found")
 }
 
-func C16MemMapLoad(mem *C16MemoryMap, addr uint16, data *uint16, size uint16) error {
+func C32MemMapLoad(mem *C32MemoryMap, addr uint32, data *uint32, size uint32) error {
 	if size > mem.limit {
 		return errors.New("data is bigger than memory");
 	}
-
+	return nil;
 }
