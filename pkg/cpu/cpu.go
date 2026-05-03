@@ -1,6 +1,7 @@
-package vm;
+package cpu
 
 import (
+	"context"
 	"errors"
 	"strings"
 )
@@ -27,9 +28,14 @@ const (
 
 type Cpu16 struct {
 	registers []uint16;
+	
 	regsNames []string;
+	
 	memory *C16MemoryMap;
+	
 	interruptVectorAddress uint16;
+
+	ctx context.Context;
 } 
 
 type C16MemoryMap struct {
@@ -38,9 +44,10 @@ type C16MemoryMap struct {
 }
 
 // r1-r8, sp, bp, mb, im, ip
-func C16CreateCpu(C16MemoryMap *uint16, size int, ) (Cpu16, error){
-	var cpu Cpu16;
+func C16CreateCpu(C16MemoryMap *uint16, size int, ) (*Cpu16, error){
+	var cpu *Cpu16 = &Cpu16{ ctx: context.Background()};
 
+	
 	cpu.registers = make([]uint16, 13)
 	cpu.regsNames[REG_R1] = "r1";
 	cpu.regsNames[REG_R2] = "r2";
@@ -60,15 +67,16 @@ func C16CreateCpu(C16MemoryMap *uint16, size int, ) (Cpu16, error){
 	cpu.regsNames[REG_IP] = "ip";
 
 	err := C16SetRegister(cpu ,"sp", 0xffff - 1);
-	
+
 	if(err != nil){
 		return cpu, err;
 	}
 
+
 	return cpu, nil;
 }
 
-func C16SetRegister(cpu Cpu16, reg string, value uint16) error {
+func C16SetRegister(cpu *Cpu16, reg string, value uint16) error {
 	idx, err := C16GetRegisterIndex(cpu, reg);
 	if(err != nil){
 		return err; 
@@ -77,7 +85,7 @@ func C16SetRegister(cpu Cpu16, reg string, value uint16) error {
 	return nil;
 }
 
-func C16GetRegisterIndex(cpu Cpu16, str string) (uint8, error) {
+func C16GetRegisterIndex(cpu *Cpu16, str string) (uint8, error) {
 	for i := range len(cpu.registers){
 		if(strings.Compare(cpu.regsNames[i], str) > 0){
 			return uint8(i), nil;
